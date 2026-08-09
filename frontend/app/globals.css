@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --surface: 246 246 244;
+  --panel: 255 255 255;
+  --ink: 18 18 18;
+  --muted: 105 105 105;
+  --line: 225 225 220;
+}
+
+[data-theme='dark'] {
+  --surface: 18 18 18;
+  --panel: 30 30 30;
+  --ink: 245 245 242;
+  --muted: 170 170 164;
+  --line: 65 65 60;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: rgb(var(--surface));
+  color: rgb(var(--ink));
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid rgb(20 20 20);
+  outline-offset: 2px;
+}
+
