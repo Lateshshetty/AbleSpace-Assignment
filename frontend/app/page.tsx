@@ -254,8 +254,8 @@ export default function Home() {
               </Button>
             </div>
           </div>
-          <p className="mx-auto mt-5 max-w-xs text-xs leading-5 text-muted">
-            By clicking continue, you agree to our Terms of Service and Privacy Policy.
+          <p className="mx-auto mt-3 max-w-xs rounded-md border border-line bg-panel px-3 py-2 text-xs leading-5 text-muted shadow-sm">
+            This app uses Render free tier for the backend. If login feels slow, please wait up to 2 minutes while the server wakes up.
           </p>
           {error ? <div className="mt-5"><ErrorState message={error} /></div> : null}
         </section>
