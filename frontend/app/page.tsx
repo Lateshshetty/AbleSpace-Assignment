@@ -106,6 +106,7 @@ export default function Home() {
     try {
       setAuthBusy(true);
       setError('');
+      localStorage.removeItem('ablespace_pending_invite');
       await guestLogin();
       await loadApp();
     } catch (err) {
