@@ -1,7 +1,7 @@
 'use client';
 
-import { Chrome, Loader2, Plus, Pyramid } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Chrome, Filter, Loader2, Plus, Pyramid, Search, X } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '@/components/Button';
 import { ErrorState, LoadingState } from '@/components/State';
 import { Header } from '@/components/Header';
@@ -17,7 +17,7 @@ import { getToken } from '@/services/api';
 import { getMe, googleLogin, guestLogin, logout as authLogout, updateProfile } from '@/services/authService';
 import { createProject, deleteProject, getProjects, inviteToProject, leaveProject } from '@/services/projectService';
 import { createTask, deleteTask, getTasks, updateTask } from '@/services/taskService';
-import { Project, ProjectInvite, Task, TaskInput, TaskStatus, User } from '@/types/task';
+import { Project, ProjectInvite, Task, TaskInput, TaskPriority, TaskStatus, User } from '@/types/task';
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,7 +35,42 @@ export default function Home() {
   const [activeView, setActiveView] = useState<'tasks' | 'projects' | 'profile'>('tasks');
   const [taskDisplay, setTaskDisplay] = useState<'list' | 'board'>('list');
   const [fieldsOpen, setFieldsOpen] = useState(false);
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | TaskStatus>('all');
+  const [priorityFilter, setPriorityFilter] = useState<'all' | TaskPriority>('all');
   const [lastInvite, setLastInvite] = useState<ProjectInvite | null>(null);
+
+  const filteredTasks = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+
+    return tasks.filter((task) => {
+      const matchesSearch = !query || [
+        task.title,
+        task.description,
+        task.project,
+        task.assignee,
+        task.label,
+        task.status,
+        task.priority,
+      ].some((value) => value?.toLowerCase().includes(query));
+      const matchesStatus = statusFilter === 'all' || task.status === statusFilter;
+      const matchesPriority = priorityFilter === 'all' || task.priority === priorityFilter;
+
+      return matchesSearch && matchesStatus && matchesPriority;
+    });
+  }, [priorityFilter, searchQuery, statusFilter, tasks]);
+
+  const filteredProjects = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) return projects;
+
+    return projects.filter((project) => [
+      project.name,
+      project.description,
+      ...project.members.flatMap((member) => [member.name, member.email]),
+    ].some((value) => value?.toLowerCase().includes(query)));
+  }, [projects, searchQuery]);
 
   useEffect(() => {
     if (!getToken()) {
@@ -245,14 +280,17 @@ export default function Home() {
           teammates={projects.flatMap((project) => project.members.map((member) => member.name)).filter((name) => name !== user?.name)}
           onCreate={() => openCreate()}
           onEditProfile={() => setActiveView('profile')}
+          onFieldsToggle={() => setFieldsOpen((open) => !open)}
+          onFilterToggle={() => setFilterOpen((open) => !open)}
           onInvite={() => {
             setLastInvite(null);
             setInviteOpen(true);
           }}
           onLogout={handleLogout}
+          onSearchFocus={() => document.getElementById('workspace-search')?.focus()}
         />
         <div className="px-3 py-4 lg:px-4">
-          {activeView !== 'profile' ? <ProjectStrip projects={projects} tasks={tasks} /> : null}
+          {activeView !== 'profile' ? <ProjectStrip projects={projects} tasks={filteredTasks} /> : null}
           {error ? <div className="mb-5"><ErrorState message={error} /></div> : null}
           {loading ? <LoadingState label="Loading your workspace" /> : activeView === 'profile' ? (
             <ProfileSettingsView busy={saving} onBack={() => setActiveView('tasks')} onLeaveWorkspace={handleLogout} onSave={handleProfileSave} user={user} />
@@ -271,15 +309,28 @@ export default function Home() {
               <TasksToolbar
                 display={taskDisplay}
                 fieldsOpen={fieldsOpen}
+                filterOpen={filterOpen}
+                priorityFilter={priorityFilter}
+                searchQuery={searchQuery}
+                statusFilter={statusFilter}
+                onClearFilters={() => {
+                  setSearchQuery('');
+                  setStatusFilter('all');
+                  setPriorityFilter('all');
+                }}
                 onCreate={() => openCreate()}
                 onFieldsToggle={() => setFieldsOpen((open) => !open)}
+                onFilterToggle={() => setFilterOpen((open) => !open)}
                 onDisplayChange={setTaskDisplay}
+                onPriorityFilterChange={setPriorityFilter}
+                onSearchChange={setSearchQuery}
+                onStatusFilterChange={setStatusFilter}
               />
               {taskDisplay === 'list' ? (
-                <TasksListView tasks={tasks} onCreate={openCreate} onOpen={setSelectedTask} />
+                <TasksListView tasks={filteredTasks} onCreate={openCreate} onOpen={setSelectedTask} />
               ) : (
                 <KanbanBoard
-                  tasks={tasks}
+                  tasks={filteredTasks}
                   onCreate={openCreate}
                   onEdit={(task) => {
                     setEditingTask(task);
@@ -292,12 +343,14 @@ export default function Home() {
             </>
           ) : (
             <ProjectsPanel
-              projects={projects}
+              projects={filteredProjects}
+              searchQuery={searchQuery}
               user={user}
               onCreate={handleCreateProject}
               onDelete={handleDeleteProject}
               onInvite={() => setInviteOpen(true)}
               onLeave={handleLeaveProject}
+              onSearchChange={setSearchQuery}
             />
           )}
         </div>
@@ -318,26 +371,107 @@ export default function Home() {
 function TasksToolbar({
   display,
   fieldsOpen,
+  filterOpen,
+  priorityFilter,
+  searchQuery,
+  statusFilter,
+  onClearFilters,
   onCreate,
   onFieldsToggle,
+  onFilterToggle,
   onDisplayChange,
+  onPriorityFilterChange,
+  onSearchChange,
+  onStatusFilterChange,
 }: {
   display: 'list' | 'board';
   fieldsOpen: boolean;
+  filterOpen: boolean;
+  priorityFilter: 'all' | TaskPriority;
+  searchQuery: string;
+  statusFilter: 'all' | TaskStatus;
+  onClearFilters: () => void;
   onCreate: () => void;
   onFieldsToggle: () => void;
+  onFilterToggle: () => void;
   onDisplayChange: (display: 'list' | 'board') => void;
+  onPriorityFilterChange: (priority: 'all' | TaskPriority) => void;
+  onSearchChange: (query: string) => void;
+  onStatusFilterChange: (status: 'all' | TaskStatus) => void;
 }) {
+  const hasActiveFilters = Boolean(searchQuery.trim()) || statusFilter !== 'all' || priorityFilter !== 'all';
+
   return (
-    <div className="relative mb-4 flex items-center justify-between">
+    <div className="relative mb-4 flex flex-wrap items-center justify-between gap-3">
       <h2 className="text-[13px] font-bold text-ink">Tasks</h2>
-      <div className="flex items-center gap-2">
-        <button className="h-8 rounded border border-line bg-panel px-3 text-[11px] font-semibold" onClick={onFieldsToggle} type="button">Fields</button>
-        <button className="h-8 rounded border border-line bg-panel px-3 text-[11px] font-semibold" onClick={() => onDisplayChange(display === 'list' ? 'board' : 'list')} type="button">
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <label className="flex h-8 min-w-[220px] items-center gap-2 rounded-md border border-line bg-panel px-2 text-[11px] text-muted transition focus-within:border-ink/40 focus-within:shadow-sm">
+          <Search size={13} />
+          <input
+            id="workspace-search"
+            className="h-full min-w-0 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-muted"
+            onChange={(event) => onSearchChange(event.target.value)}
+            placeholder="Search tasks, labels, people"
+            type="search"
+            value={searchQuery}
+          />
+          {searchQuery ? (
+            <button aria-label="Clear search" className="text-muted hover:text-ink" onClick={() => onSearchChange('')} type="button">
+              <X size={13} />
+            </button>
+          ) : null}
+        </label>
+        <button
+          className={`inline-flex h-8 items-center gap-1 rounded-md border px-3 text-[11px] font-semibold transition ${hasActiveFilters ? 'border-ink bg-ink text-panel' : 'border-line bg-panel text-ink hover:bg-surface'}`}
+          onClick={onFilterToggle}
+          type="button"
+        >
+          <Filter size={13} />
+          Filter
+        </button>
+        <button className="h-8 rounded-md border border-line bg-panel px-3 text-[11px] font-semibold hover:bg-surface" onClick={onFieldsToggle} type="button">Fields</button>
+        <button className="h-8 rounded-md border border-line bg-panel px-3 text-[11px] font-semibold hover:bg-surface" onClick={() => onDisplayChange(display === 'list' ? 'board' : 'list')} type="button">
           {display === 'list' ? 'Board' : 'List'}
         </button>
         <Button onClick={onCreate}>+ Add Task</Button>
       </div>
+      {filterOpen ? (
+        <div className="absolute right-28 top-10 z-30 w-64 rounded-md border border-line bg-panel p-3 shadow-soft">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[12px] font-bold text-ink">Filters</p>
+            {hasActiveFilters ? (
+              <button className="text-[11px] font-semibold text-muted hover:text-ink" onClick={onClearFilters} type="button">Clear</button>
+            ) : null}
+          </div>
+          <label className="mb-3 block text-[11px] font-semibold text-muted">
+            Status
+            <select
+              className="mt-1 h-9 w-full rounded-md border border-line bg-surface px-2 text-[12px] text-ink outline-none focus:border-ink/40"
+              onChange={(event) => onStatusFilterChange(event.target.value as 'all' | TaskStatus)}
+              value={statusFilter}
+            >
+              <option value="all">All statuses</option>
+              <option value="todo">To do</option>
+              <option value="in-progress">Doing</option>
+              <option value="done">Completed</option>
+              <option value="on-hold">On hold</option>
+            </select>
+          </label>
+          <label className="block text-[11px] font-semibold text-muted">
+            Priority
+            <select
+              className="mt-1 h-9 w-full rounded-md border border-line bg-surface px-2 text-[12px] text-ink outline-none focus:border-ink/40"
+              onChange={(event) => onPriorityFilterChange(event.target.value as 'all' | TaskPriority)}
+              value={priorityFilter}
+            >
+              <option value="all">All priorities</option>
+              <option value="high">High</option>
+              <option value="medium">Medium</option>
+              <option value="low">Low</option>
+            </select>
+          </label>
+        </div>
+      ) : null}
       {fieldsOpen ? (
         <div className="absolute right-16 top-10 z-20 w-60 rounded-md border border-line bg-panel p-3 shadow-soft">
           <div className="mb-3 grid grid-cols-2 rounded-md bg-surface p-1 text-[12px] font-semibold">

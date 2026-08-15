@@ -1,24 +1,44 @@
 'use client';
 
-import { LogOut, MoreHorizontal, Plus, Trash2 } from 'lucide-react';
+import { LogOut, MoreHorizontal, Plus, Search, Trash2, X } from 'lucide-react';
 import { Button } from './Button';
 import { Project, User } from '@/types/task';
 
 type ProjectsPanelProps = {
   projects: Project[];
+  searchQuery: string;
   user: User | null;
   onCreate: () => void;
   onInvite: () => void;
   onLeave: (project: Project) => void;
   onDelete: (project: Project) => void;
+  onSearchChange: (query: string) => void;
 };
 
-export function ProjectsPanel({ projects, user, onCreate, onInvite, onLeave, onDelete }: ProjectsPanelProps) {
+export function ProjectsPanel({ projects, searchQuery, user, onCreate, onInvite, onLeave, onDelete, onSearchChange }: ProjectsPanelProps) {
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-[13px] font-bold text-ink">Projects</h2>
-        <Button onClick={onCreate}><Plus size={13} /> Add Project</Button>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <label className="flex h-8 min-w-[220px] items-center gap-2 rounded-md border border-line bg-panel px-2 text-[11px] text-muted transition focus-within:border-ink/40 focus-within:shadow-sm">
+            <Search size={13} />
+            <input
+              id="workspace-search"
+              className="h-full min-w-0 flex-1 bg-transparent text-[12px] text-ink outline-none placeholder:text-muted"
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Search projects or members"
+              type="search"
+              value={searchQuery}
+            />
+            {searchQuery ? (
+              <button aria-label="Clear project search" className="text-muted hover:text-ink" onClick={() => onSearchChange('')} type="button">
+                <X size={13} />
+              </button>
+            ) : null}
+          </label>
+          <Button onClick={onCreate}><Plus size={13} /> Add Project</Button>
+        </div>
       </div>
       <div className="animate-fade-up overflow-hidden rounded-md border border-line bg-panel shadow-sm transition hover:shadow-lift">
         <div className="grid grid-cols-[minmax(220px,1fr)_120px_120px_140px_120px] bg-[#f4f4f4] px-3 py-3 text-[12px] font-semibold">

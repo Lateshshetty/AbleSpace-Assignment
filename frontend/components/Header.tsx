@@ -10,12 +10,15 @@ type HeaderProps = {
   teammates: string[];
   activeView: 'tasks' | 'projects' | 'profile';
   onCreate: () => void;
+  onFieldsToggle: () => void;
+  onFilterToggle: () => void;
   onInvite: () => void;
   onEditProfile: () => void;
   onLogout: () => void;
+  onSearchFocus: () => void;
 };
 
-export function Header({ user, teammates, activeView, onCreate, onInvite, onEditProfile, onLogout }: HeaderProps) {
+export function Header({ user, teammates, activeView, onCreate, onFieldsToggle, onFilterToggle, onInvite, onEditProfile, onLogout, onSearchFocus }: HeaderProps) {
   const avatarNames = [user?.name || 'Dexter', ...teammates].slice(0, 4);
 
   return (
@@ -51,9 +54,9 @@ export function Header({ user, teammates, activeView, onCreate, onInvite, onEdit
         </div>
 
         <div className="flex items-center gap-2">
-          <IconButton label="Search"><Search size={16} /></IconButton>
-          <IconButton label="Fields"><SlidersHorizontal size={16} /></IconButton>
-          <IconButton label="Filter"><Filter size={16} /></IconButton>
+          <IconButton label="Search" onClick={onSearchFocus}><Search size={16} /></IconButton>
+          <IconButton label="Fields" onClick={onFieldsToggle}><SlidersHorizontal size={16} /></IconButton>
+          <IconButton label="Filter" onClick={onFilterToggle}><Filter size={16} /></IconButton>
           <ThemeSwitcher />
           <Button className="hidden !rounded-md !bg-ink !px-3 !text-[11px] sm:inline-flex" onClick={onCreate}>
             <Plus size={13} />
@@ -72,9 +75,9 @@ export function Header({ user, teammates, activeView, onCreate, onInvite, onEdit
   );
 }
 
-function IconButton({ label, children }: { label: string; children: React.ReactNode }) {
+function IconButton({ label, children, onClick }: { label: string; children: React.ReactNode; onClick: () => void }) {
   return (
-    <button aria-label={label} className="hidden h-8 w-8 place-items-center rounded-md border border-line bg-panel text-ink hover:bg-surface sm:grid" type="button">
+    <button aria-label={label} className="hidden h-8 w-8 place-items-center rounded-md border border-line bg-panel text-ink hover:bg-surface sm:grid" onClick={onClick} type="button">
       {children}
     </button>
   );
