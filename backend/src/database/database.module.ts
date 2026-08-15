@@ -15,10 +15,12 @@ import { MongooseModule } from '@nestjs/mongoose';
         return {
           uri,
           dbName: config.get<string>('MONGODB_DB_NAME') || 'intershalaproject',
+          serverSelectionTimeoutMS: 10000,
+          retryAttempts: 1,
+          retryDelay: 1000,
         };
       },
     }),
   ],
 })
 export class DatabaseModule {}
-

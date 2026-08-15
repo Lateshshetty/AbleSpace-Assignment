@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AuthGuard } from '@nestjs/passport';
 import { Response } from 'express';
@@ -41,9 +41,14 @@ export class AuthController {
     return this.authService.me(request.user.userId);
   }
 
+  @Patch('me')
+  @UseGuards(AuthGuard('jwt'))
+  updateMe(@Req() request: AuthenticatedRequest, @Body() body: { name?: string; email?: string; avatar?: string }) {
+    return this.authService.updateMe(request.user.userId, body);
+  }
+
   @Post('logout')
   logout() {
     return { ok: true };
   }
 }
-

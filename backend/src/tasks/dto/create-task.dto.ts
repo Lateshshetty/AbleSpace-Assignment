@@ -23,5 +23,23 @@ export class CreateTaskDto {
   @IsOptional()
   @IsDateString()
   dueDate?: string;
-}
 
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  project?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  assignee?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(80)
+  label?: string;
+
+  @IsOptional()
+  @IsString()
+  projectId?: string;
+}

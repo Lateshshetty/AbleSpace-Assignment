@@ -39,10 +39,24 @@ export class AuthService {
     };
   }
 
+  async updateMe(userId: string, input: { name?: string; email?: string; avatar?: string }) {
+    const user = await this.usersService.updateProfile(userId, input);
+    if (!user) {
+      throw new UnauthorizedException('User no longer exists');
+    }
+
+    return {
+      id: user._id.toString(),
+      name: user.name,
+      email: user.email,
+      avatar: user.avatar,
+      isGuest: user.isGuest,
+    };
+  }
+
   private issueToken(userId: string) {
     return {
       accessToken: this.jwtService.sign({ sub: userId }),
     };
   }
 }
-

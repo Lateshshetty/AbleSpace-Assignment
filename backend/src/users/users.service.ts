@@ -42,5 +42,20 @@ export class UsersService {
   findById(id: string) {
     return this.userModel.findById(id).lean();
   }
-}
 
+  async updateProfile(id: string, input: { name?: string; email?: string; avatar?: string }) {
+    return this.userModel
+      .findByIdAndUpdate(
+        id,
+        {
+          $set: {
+            ...(input.name ? { name: input.name } : {}),
+            ...(input.email ? { email: input.email } : {}),
+            ...(input.avatar !== undefined ? { avatar: input.avatar } : {}),
+          },
+        },
+        { new: true, runValidators: true },
+      )
+      .lean();
+  }
+}

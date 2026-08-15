@@ -26,3 +26,10 @@ export function getMe() {
   return apiRequest<User>('/auth/me');
 }
 
+export function updateProfile(input: { name?: string; email?: string; avatar?: string }) {
+  return apiRequest<User>('/auth/me', {
+    method: 'PATCH',
+    body: JSON.stringify(input),
+  });
+}
+

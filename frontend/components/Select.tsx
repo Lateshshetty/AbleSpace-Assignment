@@ -6,10 +6,10 @@ type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
 
 export function Select({ label, children, ...props }: SelectProps) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-ink">
+    <label className="grid min-w-0 gap-2 text-sm font-medium text-ink">
       <span>{label}</span>
       <select
-        className="min-h-11 rounded-xl border border-line bg-panel px-4 text-sm text-ink outline-none transition focus:border-ink"
+        className="min-h-11 w-full min-w-0 rounded-xl border border-line bg-panel px-4 text-sm text-ink outline-none transition focus:border-ink"
         {...props}
       >
         {children}
@@ -17,4 +17,3 @@ export function Select({ label, children, ...props }: SelectProps) {
     </label>
   );
 }
-

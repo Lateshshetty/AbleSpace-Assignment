@@ -13,6 +13,12 @@ function AuthCallbackContent() {
     const token = searchParams.get('token');
     if (token) {
       saveAuthToken(token);
+      const pendingInvite = localStorage.getItem('ablespace_pending_invite');
+      if (pendingInvite) {
+        localStorage.removeItem('ablespace_pending_invite');
+        router.replace(`/invite/accept?token=${encodeURIComponent(pendingInvite)}`);
+        return;
+      }
       router.replace('/');
     } else {
       router.replace('/?authError=google');

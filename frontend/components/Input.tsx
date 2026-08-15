@@ -8,11 +8,11 @@ type FieldProps = InputHTMLAttributes<HTMLInputElement> & {
 
 export function Input({ label, error, className, ...props }: FieldProps) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-ink">
+    <label className="grid min-w-0 gap-2 text-sm font-medium text-ink">
       <span>{label}</span>
       <input
         className={clsx(
-          'min-h-11 rounded-xl border border-line bg-panel px-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink',
+          'min-h-11 w-full min-w-0 rounded-xl border border-line bg-panel px-4 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink',
           className,
         )}
         {...props}
@@ -29,11 +29,11 @@ type TextareaProps = TextareaHTMLAttributes<HTMLTextAreaElement> & {
 
 export function Textarea({ label, error, className, ...props }: TextareaProps) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-ink">
+    <label className="grid min-w-0 gap-2 text-sm font-medium text-ink">
       <span>{label}</span>
       <textarea
         className={clsx(
-          'min-h-28 resize-none rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink',
+          'min-h-28 w-full min-w-0 resize-none rounded-xl border border-line bg-panel px-4 py-3 text-sm text-ink outline-none transition placeholder:text-muted focus:border-ink',
           className,
         )}
         {...props}
@@ -42,4 +42,3 @@ export function Textarea({ label, error, className, ...props }: TextareaProps) {
     </label>
   );
 }
-
