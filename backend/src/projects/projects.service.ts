@@ -29,9 +29,6 @@ export class ProjectsService {
   async create(userId: string, dto: CreateProjectDto) {
     const user = await this.usersService.findById(userId);
     if (!user) throw new NotFoundException('User not found');
-    if (user.isGuest) {
-      throw new ForbiddenException('Please sign in with Google to accept project invites');
-    }
 
     return this.projectModel.create({
       ...dto,
